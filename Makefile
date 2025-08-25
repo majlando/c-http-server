@@ -27,7 +27,11 @@ clean:
 
 
 test: CFLAGS += -I./src
-test: tests/test_http_parser
+test: tests-all
+	@echo "Running tests..."
+	@for t in $(TEST_BINS); do \
+		./$$t || exit 1; \
+	done
 
 # Build each test binary from its own .c plus src/http_parser.o
 tests/test_http_parser: tests/test_http_parser.o src/http_parser.o | bin
@@ -44,6 +48,13 @@ TEST_BINS = $(TEST_SRC:.c=)
 
 tests-all: $(TEST_BINS) | bin
 
-tests/%: tests/%.c src/http_parser.o | bin
+.PHONY: test tests-all
+
+.PHONY: integration-test
+integration-test: $(BIN)
+	@echo "Running integration test..."
+	@tests/integration/test_server.sh
+
+tests/%: tests/%.c src/http_parser.o src/fsutils.o | bin
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 

@@ -1,0 +1,43 @@
+Listening on 0.0.0.0:8080 (epoll)
+accepted fd=6
+served fd=6 GET /
+shutting down
+Listening on 0.0.0.0:8080 (epoll)
+accepted fd=6
+served fd=6 GET /
+accepted fd=6
+served fd=6 GET /favicon.ico
+shutting down
+Listening on 0.0.0.0:8080 (epoll)
+accepted fd=6
+served fd=6 GET /
+shutting down
+Listening on 0.0.0.0:8080 (epoll)
+accepted fd=6
+served fd=6 GET /
+accepted fd=6
+served fd=6 GET /
+accepted fd=6
+served fd=6 GET /
+accepted fd=6
+served fd=6 GET /
+accepted fd=6
+served fd=6 GET /
+accepted fd=6
+served fd=6 GET /
+accepted fd=6
+accepted fd=6
+served fd=6 GET /
+accepted fd=6
+served fd=6 GET /
+accepted fd=6
+served fd=6 GET /
+accepted fd=6
+served fd=6 GET /
+accepted fd=6
+accepted fd=6
+served fd=6 GET /
+accepted fd=6
+served fd=6 GET /
+accepted fd=6
+served fd=6 GET /

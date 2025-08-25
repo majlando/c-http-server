@@ -43,8 +43,5 @@ int http_parser_header_count(http_parser_t *p);
 const char *http_parser_header_name(http_parser_t *p, int idx);
 const char *http_parser_header_value(http_parser_t *p, int idx);
 
-/* Max sizes (tuning knobs for safety) */
-#define HTTPP_MAX_HEADERS 32
-#define HTTPP_MAX_BUF 4096
-
+/* header end */
 #endif
