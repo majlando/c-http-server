@@ -11,6 +11,14 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "http_parser.h"
+
+typedef struct connection_s {
+    int fd;
+    http_parser_t parser;
+    char buf[8192];
+    size_t buflen;
+} connection_t;
 
 static const char *response =
     "HTTP/1.1 200 OK\r\n"
@@ -23,7 +31,8 @@ static const char *response =
 static int set_nonblocking(int fd) {
     int flags = fcntl(fd, F_GETFL, 0);
     if (flags == -1) return -1;
-    return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) return -1;
+    return 0;
 }
 
 int main(void) {
@@ -80,7 +89,6 @@ int main(void) {
     printf("Listening on 0.0.0.0:8080 (epoll)\n");
 
     struct epoll_event events[64];
-
     for (;;) {
         int n = epoll_wait(epfd, events, 64, -1);
         if (n < 0) {
@@ -88,11 +96,8 @@ int main(void) {
             perror("epoll_wait");
             break;
         }
-
         for (int i = 0; i < n; ++i) {
-            int fd = events[i].data.fd;
-
-            if (fd == listen_fd) {
+            if (events[i].data.fd == listen_fd) {
                 // accept loop
                 for (;;) {
                     int client = accept(listen_fd, NULL, NULL);
@@ -101,49 +106,71 @@ int main(void) {
                         perror("accept");
                         break;
                     }
-
                     if (set_nonblocking(client) < 0) {
                         close(client);
                         continue;
                     }
-
+                    connection_t *conn = calloc(1, sizeof(connection_t));
+                    if (!conn) {
+                        close(client);
+                        continue;
+                    }
+                    conn->fd = client;
+                    http_parser_init(&conn->parser);
+                    conn->buflen = 0;
                     struct epoll_event cev;
                     cev.events = EPOLLIN | EPOLLET;
-                    cev.data.fd = client;
+                    cev.data.ptr = conn;
                     if (epoll_ctl(epfd, EPOLL_CTL_ADD, client, &cev) < 0) {
                         perror("epoll_ctl: client add");
                         close(client);
+                        free(conn);
                     }
                 }
             } else {
                 // handle client read
-                int client = fd;
-                char buf[2048];
-                ssize_t r;
-                int closed = 0;
-
+                connection_t *conn = (connection_t *)events[i].data.ptr;
+                if (!conn) continue;
+                int client = conn->fd;
+                ssize_t r = 0;
+                int done = 0;
                 for (;;) {
-                    r = recv(client, buf, sizeof(buf), 0);
+                    r = recv(client, conn->buf + conn->buflen, sizeof(conn->buf) - conn->buflen - 1, 0);
                     if (r > 0) {
-                        // keep reading until EAGAIN; this toy server ignores request contents
+                        conn->buflen += r;
+                        if (conn->buflen >= sizeof(conn->buf) - 1) break;
                         continue;
                     } else if (r == 0) {
-                        closed = 1; // peer closed
+                        done = 1; // peer closed
                         break;
                     } else {
                         if (errno == EAGAIN || errno == EWOULDBLOCK) break;
-                        // error
-                        closed = 1;
+                        done = 1;
                         break;
                     }
                 }
-
-                // write response (ignore partial writes for this minimal server)
-                ssize_t s = send(client, response, strlen(response), 0);
-                (void)s;
-
-                epoll_ctl(epfd, EPOLL_CTL_DEL, client, NULL);
-                close(client);
+                conn->buf[conn->buflen] = '\0';
+                size_t consumed = 0;
+                int pres = http_parser_execute(&conn->parser, conn->buf, conn->buflen, &consumed);
+                if (pres == 1) {
+                    send(client, response, strlen(response), 0);
+                    done = 1;
+                } else if (pres == -1) {
+                    const char *err = "HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n";
+                    send(client, err, strlen(err), 0);
+                    done = 1;
+                }
+                // Remove consumed bytes from buffer
+                if (consumed > 0 && consumed <= conn->buflen) {
+                    memmove(conn->buf, conn->buf + consumed, conn->buflen - consumed);
+                    conn->buflen -= consumed;
+                }
+                if (done) {
+                    epoll_ctl(epfd, EPOLL_CTL_DEL, client, NULL);
+                    http_parser_destroy(&conn->parser);
+                    close(client);
+                    free(conn);
+                }
             }
         }
     }

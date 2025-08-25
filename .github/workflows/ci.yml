@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Build (no sanitizer)
+        run: |
+          make clean || true
+          make -j
+
+      - name: Build and run tests with sanitizers
+        env:
+          SAN_CFLAGS: "-std=c11 -Wall -Wextra -O2 -g -fsanitize=address,undefined -fno-omit-frame-pointer"
+          SAN_LDFLAGS: "-fsanitize=address,undefined"
+        run: |
+          make clean || true
+          CFLAGS="$SAN_CFLAGS" LDFLAGS="$SAN_LDFLAGS" make -j tests-all
+          # Run all test binaries under tests/
+          for f in tests/*; do
+            if [ -x "$f" ] && [ -f "$f" ]; then
+              echo "Running $f";
+              ./$f;
+            fi
+          done

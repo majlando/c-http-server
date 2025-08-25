@@ -97,6 +97,19 @@ int http_parser_execute(http_parser_t *p, const char *data, size_t len, size_t *
     return 1;
 }
 
+void http_parser_destroy(http_parser_t *p) {
+    if (!p) return;
+    free((void*)p->method);
+    free((void*)p->path);
+    free((void*)p->version);
+    for (int i = 0; i < p->headers; ++i) {
+        free((void*)p->h_name[i]);
+        free((void*)p->h_value[i]);
+    }
+    // reset state
+    memset(p, 0, sizeof(*p));
+}
+
 const char *http_parser_method(http_parser_t *p) { return p->method; }
 const char *http_parser_path(http_parser_t *p) { return p->path; }
 const char *http_parser_version(http_parser_t *p) { return p->version; }

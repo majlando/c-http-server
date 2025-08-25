@@ -21,6 +21,9 @@ typedef struct http_parser_s {
 /* Initialize parser */
 void http_parser_init(http_parser_t *p);
 
+/* Free any allocations inside parser */
+void http_parser_destroy(http_parser_t *p);
+
 /*
  * Feed data into the parser incrementally.
  * - data/len: incoming bytes

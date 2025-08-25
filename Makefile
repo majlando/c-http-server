@@ -25,12 +25,25 @@ clean:
 
 .PHONY: all clean
 
+
 test: CFLAGS += -I./src
 test: tests/test_http_parser
 
-tests/test_http_parser: $(TEST_OBJ) $(filter-out src/main.o, $(OBJ)) | bin
+# Build each test binary from its own .c plus src/http_parser.o
+tests/test_http_parser: tests/test_http_parser.o src/http_parser.o | bin
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+tests/test_http_parser_fragmented: tests/test_http_parser_fragmented.o src/http_parser.o | bin
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+# Build all test binaries found under tests/*.c -> tests/<name>
+TEST_BINS = $(TEST_SRC:.c=)
+
+tests-all: $(TEST_BINS) | bin
+
+tests/%: tests/%.c src/http_parser.o | bin
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
