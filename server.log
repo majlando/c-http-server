@@ -41,3 +41,6 @@ accepted fd=6
 served fd=6 GET /
 accepted fd=6
 served fd=6 GET /
+accepted fd=6
+served fd=6 GET /
+shutting down
