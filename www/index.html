@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>c-http-server — Minimal C HTTP server</title>
+    <meta name="description" content="A tiny educational non-blocking HTTP server written in C using epoll and a small incremental parser">
+    <style>
+      :root { color-scheme: light dark }
+      body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial; max-width: 900px; margin: 3rem auto; padding: 0 1rem; line-height: 1.6; color: #0b1220 }
+      header { border-bottom: 1px solid #e6e9ef; margin-bottom: 1.25rem }
+      h1 { margin: 0 0 0.25rem 0 }
+      .meta { color: #6b7280; font-size: 0.95rem }
+      pre, code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Liberation Mono', monospace }
+      pre { background: #f6f8fa; padding: 0.9rem; border-radius: 6px; overflow: auto }
+      .grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.25rem }
+      .card { background: #fff; border: 1px solid #eef2f7; padding: 1rem; border-radius: 8px }
+      footer { margin-top: 2rem; color: #6b7280; font-size: 0.9rem }
+      @media (max-width: 880px) { .grid { grid-template-columns: 1fr } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>c-http-server</h1>
+      <div class="meta">Minimal educational HTTP server in C — epoll, non-blocking I/O, and a small incremental parser</div>
+    </header>
+
+    <div class="grid">
+      <main>
+        <section class="card">
+          <h2>Overview</h2>
+          <p>This repository is a compact, readable starting point for learning low-level HTTP server internals. The server is intentionally small and focuses on clarity rather than completeness.</p>
+          <ul>
+            <li>Non-blocking sockets using <code>epoll</code> (Linux)</li>
+            <li>Incremental HTTP request parsing (handles fragmented input)</li>
+            <li>Static file serving from the <code>/www</code> directory</li>
+            <li>Small test-suite for the parser</li>
+          </ul>
+        </section>
+
+        <section class="card">
+          <h2>Quick demo</h2>
+          <p>Build and run locally, then request the homepage:</p>
+          <pre># build
+make
+
+# run (listens on port 8080)
+./bin/c-http-server
+
+# from another terminal
+curl -i http://127.0.0.1:8080/
+          </pre>
+        </section>
+
+        <section class="card">
+          <h2>Notes & limitations</h2>
+          <p>This project is an educational scaffold — it lacks full HTTP compliance. Notable limitations:</p>
+          <ul>
+            <li>No TLS support</li>
+            <li>Limited header/body handling (no chunked encoding support yet)</li>
+            <li>Basic MIME mapping only</li>
+            <li>Simple logging to <code>server.log</code></li>
+          </ul>
+        </section>
+      </main>
+
+      <aside>
+        <div class="card">
+          <h3>Repository</h3>
+          <p>Static files live in <code>/www</code>. Open <code>/www/index.html</code> to edit this page.</p>
+        </div>
+
+        <div class="card">
+          <h3>Contribute</h3>
+          <p>Ideas for improvements:</p>
+          <ol>
+            <li>Parser hardening (in-place incremental parsing)</li>
+            <li>Support for request bodies and chunked encoding</li>
+            <li>Add CI with sanitizers and static analysis</li>
+            <li>Graceful shutdown/timeouts and connection limits</li>
+          </ol>
+        </div>
+      </aside>
+    </div>
+
+    <footer>
+      <p>Project: <strong>c-http-server</strong> — an educational starter project. Use freely for learning and experimentation.</p>
+    </footer>
+  </body>
+</html>
