@@ -27,7 +27,8 @@ void http_parser_init(http_parser_t *p) {
 
 int http_parser_execute(http_parser_t *p, const char *data, size_t len, size_t *consumed) {
     *consumed = 0;
-    if (p->buflen + len >= sizeof(p->buf)) return -1;
+    /* If incoming data would overflow internal buffer, report overflow (-2) */
+    if (p->buflen + len >= sizeof(p->buf)) return -2;
     memcpy(p->buf + p->buflen, data, len);
     p->buflen += len;
     p->buf[p->buflen] = '\0';

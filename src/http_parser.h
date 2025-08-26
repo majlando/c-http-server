@@ -7,6 +7,12 @@
 #define HTTPP_MAX_HEADERS 32
 #define HTTPP_MAX_BUF 4096
 
+/* Return codes */
+#define HTTPP_OK 1
+#define HTTPP_NEED_MORE 0
+#define HTTPP_ERROR -1
+#define HTTPP_OVERFLOW -2
+
 typedef struct http_parser_s {
 	char buf[HTTPP_MAX_BUF];
 	size_t buflen;
@@ -29,9 +35,10 @@ void http_parser_destroy(http_parser_t *p);
  * - data/len: incoming bytes
  * - consumed: out param set to number of bytes consumed from the input
  * Returns:
- *  0 => need more data
- *  1 => request parsed successfully (headers complete)
- * -1 => parse error
+ *  HTTPP_NEED_MORE (0) => need more data
+ *  HTTPP_OK (1)           => request parsed successfully (headers complete)
+ *  HTTPP_ERROR (-1)       => parse error
+ *  HTTPP_OVERFLOW (-2)    => incoming data would overflow internal buffer
  */
 int http_parser_execute(http_parser_t *p, const char *data, size_t len, size_t *consumed);
 

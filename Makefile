@@ -50,6 +50,13 @@ tests-all: $(TEST_BINS) | bin
 
 .PHONY: test tests-all
 
+.PHONY: asan
+asan:
+	@echo "Building and running tests with AddressSanitizer and UBSan..."
+	make clean
+	CFLAGS="-g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I./src" make -j
+	make test
+
 .PHONY: integration-test
 integration-test: $(BIN)
 	@echo "Running integration test..."
